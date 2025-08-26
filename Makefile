@@ -6,4 +6,4 @@ build:
 
 .PHONY: run
 run: build
-	target/debug/rust-proj
+	target/debug/rust-prac

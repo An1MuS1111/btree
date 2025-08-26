@@ -18,12 +18,6 @@ pub struct BtreeNode<T: Ord + Clone + Debug> {
     degree: usize,
 }
 
-#[derive(Debug)]
-pub struct Btree<T: Ord + Debug + Clone> {
-    root: Option<Box<BtreeNode<T>>>,
-    degree: usize,
-}
-
 impl<T: Ord + Clone + Debug> BtreeNode<T> {
     fn new(degree: usize, is_leaf: bool) -> Self {
         assert!(degree >= 2, "degree must be getter than 2");
@@ -186,6 +180,140 @@ impl<T: Ord + Clone + Debug> BtreeNode<T> {
         // insert middle key into parent's keys array
         self.keys.insert(i, middle_key);
     }
+
+    // Helper method to print the tree structure
+    fn print_tree(&self, level: usize) {
+        println!(
+            "{}Keys: {:?} (leaf: {})",
+            " ".repeat(level),
+            self.keys,
+            self.is_leaf
+        );
+        for child in &self.children {
+            child.print_tree(level + 1);
+        }
+    }
 }
 
-fn main() {}
+#[derive(Debug)]
+pub struct Btree<T: Ord + Debug + Clone> {
+    root: Option<Box<BtreeNode<T>>>,
+    degree: usize,
+}
+
+impl<T: Ord + Clone + Debug> Btree<T> {
+    pub fn new(degree: usize) -> Self {
+        assert!(degree >= 2, "degree must be atleast 2!");
+        Btree { root: None, degree }
+    }
+
+    // search for a key in the tree
+    pub fn search(&self, key: &T) -> bool {
+        match &self.root {
+            None => false,
+            Some(root) => root.search(key),
+        }
+    }
+
+    pub fn insert(&mut self, key: T) {
+        match self.root.as_mut() {
+            None => {
+                // we create a 1 key leaf root
+
+                let mut root = BtreeNode::new(self.degree, true);
+
+                root.keys.push(key);
+
+                self.root = Some(Box::new(root));
+            }
+
+            Some(root) if root.is_full() => {
+                // if the root is full we allocate a new root
+                // make old root its child, split, and then insert
+
+                let mut new_root = BtreeNode::new(self.degree, false);
+                new_root.children.push(self.root.take().unwrap());
+                new_root.split_child(0);
+
+                // after split the appropriate child is guranteed not full
+                new_root.insert_non_full(key);
+                self.root = Some(Box::new(new_root));
+            }
+
+            Some(root) => {
+                root.insert_non_full(key);
+            }
+        }
+    }
+
+    // check if the tree is empty
+    pub fn is_empty(&self) -> bool {
+        self.root.is_none()
+    }
+
+    // Print the entire tree structure
+    pub fn print_tree(&self) {
+        match &self.root {
+            None => println!("Empty tree"),
+            Some(root) => {
+                println!("B-tree (degree {}):", self.degree);
+                root.print_tree(0);
+            }
+        }
+    }
+}
+
+// --- Example usage ---
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_empty_tree() {
+        let btree: Btree<i32> = Btree::new(2);
+        assert!(btree.is_empty());
+        assert!(!btree.search(&5));
+    }
+
+    #[test]
+    fn test_single_insertion() {
+        let mut btree = Btree::new(2);
+        btree.insert(10);
+        assert!(!btree.is_empty());
+        assert!(btree.search(&10));
+        assert!(!btree.search(&5));
+    }
+
+    #[test]
+    fn test_multiple_insertions_and_splits() {
+        let mut btree = Btree::new(3);
+        let keys = vec![20, 5, 6, 12, 30, 7, 17, 11, 21, 2, 1, 22, 8, 9];
+        for k in keys.clone() {
+            btree.insert(k);
+        }
+        for k in keys {
+            assert!(btree.search(&k));
+        }
+        assert!(!btree.search(&999));
+    }
+}
+
+fn main() {
+    println!("=== B-Tree Insertion & Search Demo ===\n");
+    let mut btree = Btree::new(3); // degree 3 => max 5 keys per node
+
+    println!("Inserting values...");
+    for &k in &[10, 20, 5, 6, 12, 30, 7, 17, 11, 21, 2, 1, 22, 8, 9] {
+        btree.insert(k);
+    }
+
+    println!("\nFinal tree structure:");
+    btree.print_tree();
+
+    println!(
+        "\nSearch checks: 1? {}, 15? {}, 21? {}",
+        btree.search(&1),
+        btree.search(&15),
+        btree.search(&21)
+    );
+}
