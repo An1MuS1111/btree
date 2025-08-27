@@ -1,1 +1,2 @@
-# advance-btree-implementation
+# btree
+## a self balanced binary tree implementation in idiomatic rust
