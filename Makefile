@@ -6,7 +6,7 @@ build:
 
 .PHONY: run
 run: build
-	target/debug/rust-prac
+	target/debug/btree
 
 
 .PHONY: test

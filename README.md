@@ -1,2 +1,6 @@
+<div align="center">
+
 # btree
-## a self balanced binary tree implementation in idiomatic rust
+## An idiomatic Rust implementation of a self-balancing binary tree
+
+</div>
