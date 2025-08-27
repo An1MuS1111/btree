@@ -1,4 +1,4 @@
-use btree_impl::btree::Btree;
+use btree::btree::Btree;
 
 #[cfg(test)]
 mod tests {
