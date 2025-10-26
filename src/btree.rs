@@ -34,7 +34,7 @@ impl<T: Ord + Clone + Debug> BtreeNode<T> {
         self.keys.len() == 2 * self.degree - 1
     }
 
-    // lower bound would be the index where key would be inserted to maitain the sorted array
+    // lower bound would be the index where key would be inserted to maintain the sorted array
     // or where the key should be located
     fn lower_bound(&self, key: &T) -> usize {
         match self.keys.binary_search(key) {
@@ -405,7 +405,7 @@ impl<T: Ord + Clone + Debug> Btree<T> {
                 // pplit the old root
                 new_root.split_child(0);
 
-                // after split the appropriate child is guranteed not full
+                // after split the appropriate child is guaranteed not full
                 new_root.insert_non_full(key);
                 self.root = Some(Box::new(new_root));
             }
